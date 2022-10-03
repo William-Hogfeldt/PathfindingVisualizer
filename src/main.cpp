@@ -16,16 +16,30 @@ struct v2 {
 };
 
 Node grid[grid_size] = {};
-v2 blocked_positions[] = {{66, 66}, {106, 106}};
 
-// TODO(william): Convert to from pixel to grid position function kind of
+Node start_stop_nodes[2] = {{true, {square_size*5, square_size*5, square_size, square_size}}, {true, {square_size*6, square_size*5, square_size, square_size}}}; // first is start, second is end
+
+Node open_list[grid_size] = {};
+Node closed_list[grid_size] = {};
+
+
 Node get_node_from_grid(int x, int y) {
     for(Node n : grid) {
-        if(x >= n.transform.x && x < n.transform.x+40 && y >= n.transform.y && y < n.transform.y+40) {
+        if(x >= n.transform.x && x < n.transform.x+square_size && y >= n.transform.y && y < n.transform.y+square_size) {
             return n;
         }
     }
     return {0, 0, 0, 0};
+}
+
+int get_node_index(Node node) {
+    int i = 0;
+    for(Node n : grid) {
+        if(n.transform.x == node.transform.x && n.transform.y == node.transform.y) {
+            return i;
+        }
+        i++;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -38,12 +52,17 @@ int main(int argc, char *argv[])
     for (int i = 0; i < WINDOW_HEIGHT/square_size; i += 1){
         for (int j = 0; j < WINDOW_WIDTH/square_size; j += 1){
             grid[i*WINDOW_WIDTH/square_size+j].transform = {j*square_size, i*square_size, square_size, square_size};
-            for(v2 bp : blocked_positions) {
-                if(bp.x >= grid[i*WINDOW_WIDTH/square_size+j].transform.x && bp.x < grid[i*WINDOW_WIDTH/square_size+j].transform.x+40 && bp.y >= grid[i*WINDOW_WIDTH/square_size+j].transform.y && bp.y < grid[i*WINDOW_WIDTH/square_size+j].transform.y+40) {
-                    grid[i*WINDOW_WIDTH/square_size+j].blocked = true;
-                }
-            }
         }
+    }
+    
+    open_list[get_node_index(start_stop_nodes[0])] = start_stop_nodes[0];
+    
+    // TODO(William-hogfeldt): Develop the algo implementation using this
+    // https://www.edureka.co/blog/a-search-algorithm/
+    bool found_path = true;
+    while(!found_path) {
+        int f_values[grid_size];
+        
     }
     
     // SDL initialization stuff
@@ -54,19 +73,30 @@ int main(int argc, char *argv[])
     bool quit = false;
     bool drawing_blocks = false;
     int mouseX, mouseY;
+    int start_stop_index = 0;
     while(!quit) {
-        // TODO(william): Handle left click to add to blocked array
+        // update mouse pos
+        SDL_GetMouseState(&mouseX, &mouseY);
+        
         SDL_Event e;
         while( SDL_PollEvent( &e ) != 0 )
         {
             //User requests quit
             if( e.type == SDL_QUIT ) quit = true;
-            else if (e.type == SDL_MOUSEBUTTONDOWN) drawing_blocks = true;
-            else if (e.type == SDL_MOUSEBUTTONUP) drawing_blocks = false;
+            else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) drawing_blocks = true;
+            else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) drawing_blocks = false;
+            else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT) {
+                Node mouse_node = get_node_from_grid(mouseX, mouseY);
+                start_stop_nodes[start_stop_index].transform.x = mouse_node.transform.x;
+                start_stop_nodes[start_stop_index].transform.y = mouse_node.transform.y;
+                start_stop_index = start_stop_index ^ 1; 
+            }
         }
         
+        // Paint blocked blocks
         if (drawing_blocks) {
-            SDL_GetMouseState(&mouseX, &mouseY);
+            Node node = get_node_from_grid(mouseX, mouseY);
+            grid[get_node_index(node)].blocked = true;
         }
         
         SDL_RenderClear(renderer);
@@ -80,6 +110,15 @@ int main(int argc, char *argv[])
                 SDL_RenderDrawRect(renderer, &n.transform);
             }
         }
+        for (int i = 0; i < 2; i += 1){
+            if(i == 0) {
+                SDL_SetRenderDrawColor(renderer, 100, 100, 200, 255);
+            } else {
+                SDL_SetRenderDrawColor(renderer, 159, 43, 104, 255);
+            }
+            SDL_RenderFillRect(renderer, &start_stop_nodes[i].transform);
+        }
+        
         SDL_RenderPresent(renderer);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     }
