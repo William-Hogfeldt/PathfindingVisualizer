@@ -1,8 +1,8 @@
 #include <SDL.h>
 
-const int WINDOW_WIDTH = 1920;
-const int WINDOW_HEIGHT = 1080;
 const int square_size = 40;
+const int WINDOW_WIDTH = 32*square_size;
+const int WINDOW_HEIGHT = 18*square_size;
 const int grid_size = (WINDOW_WIDTH*WINDOW_HEIGHT/(square_size*square_size));
 
 
@@ -51,10 +51,23 @@ int main(int argc, char *argv[])
     SDL_Window *window = SDL_CreateWindow("GAME", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
     
-    int i = 0;
-    
-    while(1) {
+    bool quit = false;
+    bool drawing_blocks = false;
+    int mouseX, mouseY;
+    while(!quit) {
         // TODO(william): Handle left click to add to blocked array
+        SDL_Event e;
+        while( SDL_PollEvent( &e ) != 0 )
+        {
+            //User requests quit
+            if( e.type == SDL_QUIT ) quit = true;
+            else if (e.type == SDL_MOUSEBUTTONDOWN) drawing_blocks = true;
+            else if (e.type == SDL_MOUSEBUTTONUP) drawing_blocks = false;
+        }
+        
+        if (drawing_blocks) {
+            SDL_GetMouseState(&mouseX, &mouseY);
+        }
         
         SDL_RenderClear(renderer);
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
