@@ -1,0 +1,16 @@
+﻿# Temporary build files.
+.build/
+
+# Run tree.
+run_tree/*
+!run_tree/data/
+!run_tree/SDL2.dll
+!run_tree/SDL2_image.dll
+!run_tree/SDL2_ttf.dll
+
+# Visual Studio files and folder.
+.vs/
+**.sln
+**.vcxproj
+**.vcxproj.filters
+**.vcxproj.user
